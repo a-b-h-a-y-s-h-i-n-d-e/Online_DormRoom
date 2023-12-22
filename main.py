@@ -99,7 +99,8 @@ def chat_page(client, USERNAME):
         msg_box.configure(state=DISABLED)
         
         # sending username to be displayed at online_box widget
-        add_online_box(username)
+        
+        
     
     def user_left_chat_msg(username):
         
@@ -164,6 +165,8 @@ def chat_page(client, USERNAME):
                     display_msg(obj_dict['name'], obj_dict['msg'])
                 
                 if obj_dict['type'] == 'online':
+                    username_lists = obj_dict['msg']
+                    print("The usernames list are = " + ', '.join(username_lists))
                     add_online_box(obj_dict['msg'])
                     
         except ConnectionAbortedError as e:
@@ -179,7 +182,7 @@ def chat_page(client, USERNAME):
         # adding username to on_box widget
         on_box.config(state=NORMAL)
         on_box.delete("2.0", END)
-        on_box.insert('2.0', '\n\nYou\n', 'body')
+        on_box.insert('2.0', '\n\nYou', 'body')
         
         for user in list(usernames):
             print(user)

@@ -57,6 +57,8 @@ def handle_client(client_conn, client_addr, clients, online_usernames):
                 online_usernames.append(username)
 
             if len(clients) > 1:
+                if msg_dis['type'] == 'joins':
+                    current_online_users_broadcast(clients, online_usernames)
                 broadcast(client_conn, clients, msg)
 
     except ConnectionAbortedError as e:
@@ -93,7 +95,7 @@ def remove_client(client_conn, clients, online_usernames):
     else:
         print(f' CLIENT WAS ALREADY REMOVED')
     
-    if len(online_usernames) > 1:
+    if len(online_usernames) >= 1:
         current_online_users_broadcast(clients, online_usernames)
 
     
