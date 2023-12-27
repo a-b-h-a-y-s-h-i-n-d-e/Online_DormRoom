@@ -122,6 +122,8 @@ def chat_page(client, USERNAME):
         msg_box.insert(END, '\n')
         msg_box.configure(state=DISABLED) 
         
+        # to scroll down at the end
+        msg_box.yview(END)        
     def send_message(event = None):
         msg = msg_entry.get()
         if msg != '':
@@ -188,7 +190,10 @@ def chat_page(client, USERNAME):
             print(user)
             if user != USERNAME:
                 on_box.insert('end', f"\n{user}", "body")
-        on_box.config(state=DISABLED)
+        on_box.config(state=DISABLED)   
+        
+        # scroll down at end
+        on_box.yview(END)
         
     window = Tk()
     window.title('DormRoom')
