@@ -1,34 +1,31 @@
 import socket
 import pickle
 import threading
+import sys
+import errno 
 
-
-
-
-
-
-
-
-
-
-
-
-
-def broadcast(client_conn, clients, msg):
+def broadcast(client_conn, clients, msg, online_usernames):
+    # signal(SIGPIPE,SIG_DFL)
     try:
-        for c in clients:
+        for c,u in zip(clients,online_usernames):
             if c != client_conn:
-                c.send(msg)
-                print(f'BROADCAST TO {c} SUCCESSFULLY!!')
-            
-            # this is called unnecessary things don't see this else condition!!
-            # else:
-            #     print(f'CLIENT NOT FOUND!')
-                
+                try:
+                    c.send(msg)
+                    print(f'BROADCAST TO {u} SUCCESSFULLY!!')
+                except IOError as e:
+                    if e.errno == errno.EPIPE:
+                        remove_client(c, clients, online_usernames)
+                        print("DANGLED SOCKET SPOTTED SO WE REMOVE THAT !!")
+                except Exception as e:
+                    raise
+
+
                 
     except Exception as e:
-        print(f'ERROR IN BROADCASTING MESSAGES ! : {e}')
+        raise
+        # print(f'ERROR IN BROADCASTING MESSAGES ! : {e}')
         # remove_client(client_conn)
+    
 
 def current_online_users_broadcast(clients, online_usernames):
     
@@ -42,12 +39,50 @@ def current_online_users_broadcast(clients, online_usernames):
         try:
             c.send(online_usernames_bytes)
             print(f'USERNAMES BROADCAST TO {c} SUCCESSFULLY!!')
+        
+        except IOError as e:
+            if e.errno == errno.EPIPE:
+                remove_client(c, clients, online_usernames)
+                print("DANGLED SOCKET SPOTTED SO WE REMOVE THAT !!")
+
+            else:
+                raise
+
+
+        except EOFError as e:
+            raise
+            print("EOF error try again!")
         except Exception as e:
-            print(f"ERROR IN SENDING ONLINE USERNAMES TO ALL CLIENTS -> {e}")
+            raise
+            # print(f"ERROR IN SENDING ONLINE USERNAMES TO ALL CLIENTS -> {e}")
         except ConnectionAbortedError as e:
+            raise
             break
-    
-    
+
+def remove_client(client_conn, clients, online_usernames):
+    try:
+        if client_conn in clients:
+            print('before removing usernames -> ', online_usernames)
+            
+            # Get the index of the client_conn in the clients list
+            index = clients.index(client_conn)
+            
+            # Remove the client_conn and its corresponding username
+            clients.pop(index)
+            removed_username = online_usernames.pop(index)
+            
+            print(f'Removed client {client_conn} with username {removed_username}')
+            print('after removing usernames ->', online_usernames)
+        else:
+            print(f' CLIENT WAS ALREADY REMOVED')
+        
+        if len(online_usernames) >= 1:
+            print("broadcasting these usernames -> ", online_usernames)
+            current_online_users_broadcast(clients, online_usernames)
+    except Exception as e:
+        raise
+
+
 
 def handle_client(client_conn, client_addr, clients, online_usernames):
     
@@ -62,16 +97,23 @@ def handle_client(client_conn, client_addr, clients, online_usernames):
             
             msg_dis = pickle.loads(msg)
             print(msg_dis)
+
             username = msg_dis['name']
             
             # This is imp , because earlier the list was full of redundant usernames
             if username not in online_usernames:
                 online_usernames.append(username)
 
+            if msg_dis['type'] == 'joins':
+                current_online_users_broadcast(clients, online_usernames)
+                broadcast(client_conn, clients, msg, online_usernames)
+            if msg_dis['type'] == 'left':
+                print("----ONE CLIENT LEFT----")
+                remove_client(client_conn, clients, online_usernames)
+                broadcast(client_conn, clients, msg, online_usernames)
+
             if len(clients) > 1:
-                if msg_dis['type'] == 'joins':
-                    current_online_users_broadcast(clients, online_usernames)
-                broadcast(client_conn, clients, msg)
+                broadcast(client_conn, clients, msg, online_usernames)
 
     except ConnectionAbortedError as e:
         print(f'CONNECTION ABORTED BY CLIENT: {client_addr[0]}: {e}')
@@ -95,42 +137,35 @@ def handle_client(client_conn, client_addr, clients, online_usernames):
         remove_client(client_conn, clients, online_usernames)
         
     except Exception as e:
-        print(f'UNKNOWN ERROR IN RECEIVING DATA: {client_addr[0]}: {e}')
-        online_usernames.remove(username)
-        remove_client(client_conn, clients, online_usernames)
+        raise
+        # print(f'UNKNOWN ERROR IN RECEIVING DATA: {client_addr[0]}: {e}')
+        # online_usernames.remove(username)
+        # remove_client(client_conn, clients, online_usernames)
     
-
-def remove_client(client_conn, clients, online_usernames):
-    if client_conn in clients:
-        clients.remove(client_conn)
-        print(f'Removed client {client_conn}')
-    else:
-        print(f' CLIENT WAS ALREADY REMOVED')
-    
-    if len(online_usernames) >= 1:
-        current_online_users_broadcast(clients, online_usernames)
-
     
 def run(server, clients, online_usernames):
+
     
+    # signal(SIGPIPE,SIG_DFL)
     while True:
         try:
             client_conn, client_addr = server.accept()
             print(f'NEW CONNECTIONS FROM : {client_conn} : {client_addr[0]}')
             clients.append(client_conn)
+
             client_thread = threading.Thread(target= handle_client, args= (client_conn, client_addr, clients, online_usernames))
             client_thread.start()
-
         except ConnectionResetError as e:
             print(f'CLIENT HAS CLOSED THE CONNECTIONS SO REMOVING THE CLIENT {client_conn}')
             remove_client(client_conn, clients, online_usernames)
         except Exception as e:
-            print(f'ERROR IN ACCEPTING CLIENTS : {e}')
-            remove_client(client_conn, clients, online_usernames)
+            raise
+            # print(f'ERROR IN ACCEPTING CLIENTS : {e}')
+            # remove_client(client_conn, clients, online_usernames)
     
 
 SERVER_IP = '127.0.0.1'
-SERVER_PORT = 9999
+SERVER_PORT = 9996
 clients = []
 online_usernames = []
 
@@ -142,3 +177,4 @@ print(f'SERVER HAS STARTED !!')
 print(f'SERVER IS LISTENING ON {SERVER_IP} : {SERVER_PORT}')
 
 run(server, clients, online_usernames)
+

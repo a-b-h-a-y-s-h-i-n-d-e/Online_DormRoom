@@ -21,7 +21,12 @@ def login_page(client):
         
     window = Tk()
     window.title('DormRoom')
+
+
     window.iconbitmap('images/logo.ico')
+    # For linux users use below line
+    # window.iconbitmap('@images/logo.xbm')
+
     screen_width = window.winfo_screenmmwidth()
     screen_height =  window.winfo_screenheight()
     window.geometry(f"650x450")
@@ -250,7 +255,7 @@ def chat_page(client, USERNAME):
 
 USERNAME = None
 SERVER_IP = '127.0.0.1'
-SERVER_PORT = 9999
+SERVER_PORT = 9998
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
