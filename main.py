@@ -21,8 +21,6 @@ def login_page(client):
         
     window = Tk()
     window.title('DormRoom')
-
-
     window.iconbitmap('images/logo.ico')
     # For linux users use below line
     # window.iconbitmap('@images/logo.xbm')
