@@ -1,13 +1,15 @@
 import sqlite3
 import os
 
+sqlite3.threadsafety = 1
+
 class Database:
 
     serialNumber = 1
     tableName = "data" + str(serialNumber)
 
     def connectToDB(self):
-        self.conn = sqlite3.connect("chatData.db")
+        self.conn = sqlite3.connect("chatData.db", check_same_thread=False)
         self.cursor = self.conn.cursor()
 
     def tableExists(self):
@@ -21,6 +23,7 @@ class Database:
                 ?, ?, ?
             )
         """.format(self.tableName), (msg_dis['type'], msg_dis['name'], msg_dis['msg']))
+        self.conn.commit()
 
     def createTable(self):
         if not self.tableExists():
@@ -44,4 +47,4 @@ class Database:
 
     
 
-        
+
