@@ -201,6 +201,9 @@ def chat_page(client, USERNAME):
     window = Tk()
     window.title('DormRoom')
     window.iconbitmap('images/logo.ico')
+    # for linux users try below
+    # window.iconbitmap('@images/logo.xbm')
+
     window.geometry("650x450")
     window.resizable(FALSE, FALSE)
     
