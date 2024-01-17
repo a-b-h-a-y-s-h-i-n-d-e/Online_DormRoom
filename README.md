@@ -1,3 +1,6 @@
+# --- For Windows Users ---
+
+
 # Online_DormRoom
 
 Chat application made with tkinter in python!!
@@ -69,3 +72,15 @@ Python [Tkinter, Sockets]
 ## License
 
 Software should be free!!
+
+
+# --- For Linux Users ---
+
+-> download appropriate fonts first!
+
+-> just use lmain.py instead of main.py
+                OR
+-> comment out code present at 24 and 203 lines and uncomment given below codes
+
+
+        
