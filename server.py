@@ -143,9 +143,11 @@ def handle_client(client_conn, client_addr, clients, online_usernames, obj):
     
     
 def run(server, clients, online_usernames):
+    # first creating object 
     obj = Database()
     obj.connectToDB()
     obj.createTable()
+    
     while True:
         try:
             client_conn, client_addr = server.accept()
@@ -172,8 +174,6 @@ server.bind((SERVER_IP, SERVER_PORT))
 server.listen()
 print(f'SERVER HAS STARTED !!')
 print(f'SERVER IS LISTENING ON {SERVER_IP} : {SERVER_PORT}')
-
-
 
 run(server, clients, online_usernames)
 
